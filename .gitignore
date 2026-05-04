@@ -4,27 +4,13 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Virtual environment
+# Virtual environment / local libraries
 .venv/
 venv/
 env/
 
-# Jupyter
+# Jupyter cache
 .ipynb_checkpoints/
-
-# Dataset
-data/raw/
-data/processed/
-
-# Models
-models/*.keras
-models/*.h5
-
-# Results
-results/figures/*.png
-results/reports/*.txt
-results/reports/*.csv
-results/predictions/*.csv
 
 # OS / IDE
 .DS_Store
