@@ -17,3 +17,21 @@ env/
 Thumbs.db
 .vscode/
 .idea/
+
+# Dataset - ignore all real dataset files
+data/raw/**
+data/processed/**
+
+# Keep folder placeholders
+!data/raw/
+!data/raw/.gitkeep
+!data/processed/
+!data/processed/.gitkeep
+!data/processed/train/
+!data/processed/train/.gitkeep
+!data/processed/val/
+!data/processed/val/.gitkeep
+!data/processed/test/
+!data/processed/test/.gitkeep
+!data/sample_images/
+!data/sample_images/.gitkeep
