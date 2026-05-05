@@ -1,4 +1,3 @@
-# src/preprocessing.py
 import tensorflow as tf
 
 
@@ -12,15 +11,18 @@ def get_rescaling_layer():
 
 def get_data_augmentation_layer():
     """
-    Basic data augmentation for CNN baseline.
-    This is optional in Week 1, but useful for reducing overfitting later.
+    Data augmentation for traffic sign classification.
+
+    Note:
+    Do not use horizontal flip because some traffic signs are direction-sensitive.
     """
 
     return tf.keras.Sequential(
         [
-            tf.keras.layers.RandomFlip("horizontal"),
-            tf.keras.layers.RandomRotation(0.05),
-            tf.keras.layers.RandomZoom(0.1),
+            tf.keras.layers.RandomRotation(0.08),
+            tf.keras.layers.RandomZoom(0.12),
+            tf.keras.layers.RandomTranslation(0.08, 0.08),
+            tf.keras.layers.RandomContrast(0.15),
         ],
         name="data_augmentation",
     )

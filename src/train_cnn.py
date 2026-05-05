@@ -9,37 +9,59 @@ from src.config import (
     MODELS_DIR,
     FIGURES_DIR,
 )
-from src.preprocessing import get_rescaling_layer
+from src.preprocessing import get_rescaling_layer, get_data_augmentation_layer
+
+
+def conv_block(filters: int, dropout_rate: float = 0.0):
+    """
+    CNN block: Conv2D -> BatchNorm -> Conv2D -> BatchNorm -> MaxPooling -> optional Dropout.
+    """
+
+    layers = [
+        tf.keras.layers.Conv2D(filters, (3, 3), padding="same", activation="relu"),
+        tf.keras.layers.BatchNormalization(),
+
+        tf.keras.layers.Conv2D(filters, (3, 3), padding="same", activation="relu"),
+        tf.keras.layers.BatchNormalization(),
+
+        tf.keras.layers.MaxPooling2D(),
+    ]
+
+    if dropout_rate > 0:
+        layers.append(tf.keras.layers.Dropout(dropout_rate))
+
+    return layers
 
 
 def build_cnn_baseline(num_classes: int) -> tf.keras.Model:
     """
-    Build CNN baseline model using Keras Sequential API.
+    Build an optimized CNN baseline model using Keras Sequential API.
     """
 
     model = tf.keras.Sequential(
         [
             tf.keras.Input(shape=(IMG_HEIGHT, IMG_WIDTH, 3)),
 
+            get_data_augmentation_layer(),
             get_rescaling_layer(),
 
-            tf.keras.layers.Conv2D(16, (3, 3), activation="relu", padding="same"),
-            tf.keras.layers.MaxPooling2D(),
-
-            tf.keras.layers.Conv2D(32, (3, 3), activation="relu", padding="same"),
-            tf.keras.layers.MaxPooling2D(),
-
-            tf.keras.layers.Conv2D(64, (3, 3), activation="relu", padding="same"),
-            tf.keras.layers.MaxPooling2D(),
+            *conv_block(32, dropout_rate=0.10),
+            *conv_block(64, dropout_rate=0.15),
+            *conv_block(128, dropout_rate=0.20),
+            *conv_block(256, dropout_rate=0.25),
 
             tf.keras.layers.GlobalAveragePooling2D(),
 
-            tf.keras.layers.Dense(64, activation="relu"),
-            tf.keras.layers.Dropout(0.3),
+            tf.keras.layers.Dense(256, activation="relu"),
+            tf.keras.layers.BatchNormalization(),
+            tf.keras.layers.Dropout(0.40),
+
+            tf.keras.layers.Dense(128, activation="relu"),
+            tf.keras.layers.Dropout(0.30),
 
             tf.keras.layers.Dense(num_classes, activation="softmax"),
         ],
-        name="cnn_baseline",
+        name="cnn_baseline_optimized",
     )
 
     model.compile(
@@ -60,7 +82,7 @@ def get_cnn_callbacks():
 
     early_stopping = tf.keras.callbacks.EarlyStopping(
         monitor="val_loss",
-        patience=5,
+        patience=7,
         restore_best_weights=True,
         verbose=1,
     )
@@ -72,7 +94,15 @@ def get_cnn_callbacks():
         verbose=1,
     )
 
-    return [early_stopping, model_checkpoint]
+    reduce_lr = tf.keras.callbacks.ReduceLROnPlateau(
+        monitor="val_loss",
+        factor=0.5,
+        patience=3,
+        min_lr=1e-6,
+        verbose=1,
+    )
+
+    return [early_stopping, model_checkpoint, reduce_lr]
 
 
 def plot_training_history(history, save_path=CNN_HISTORY_FIGURE_PATH):
@@ -94,7 +124,7 @@ def plot_training_history(history, save_path=CNN_HISTORY_FIGURE_PATH):
     plt.subplot(1, 2, 1)
     plt.plot(epochs_range, acc, label="Training Accuracy")
     plt.plot(epochs_range, val_acc, label="Validation Accuracy")
-    plt.title("CNN Baseline Accuracy")
+    plt.title("CNN Baseline Optimized Accuracy")
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
     plt.legend()
@@ -102,7 +132,7 @@ def plot_training_history(history, save_path=CNN_HISTORY_FIGURE_PATH):
     plt.subplot(1, 2, 2)
     plt.plot(epochs_range, loss, label="Training Loss")
     plt.plot(epochs_range, val_loss, label="Validation Loss")
-    plt.title("CNN Baseline Loss")
+    plt.title("CNN Baseline Optimized Loss")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
     plt.legend()
@@ -114,9 +144,9 @@ def plot_training_history(history, save_path=CNN_HISTORY_FIGURE_PATH):
     print(f"Training history figure saved to: {save_path}")
 
 
-def train_cnn_model(train_ds, val_ds, num_classes: int, epochs: int = 20):
+def train_cnn_model(train_ds, val_ds, num_classes: int, epochs: int = 30, class_weight=None):
     """
-    Build and train CNN baseline.
+    Build and train optimized CNN baseline.
     """
 
     model = build_cnn_baseline(num_classes)
@@ -127,6 +157,7 @@ def train_cnn_model(train_ds, val_ds, num_classes: int, epochs: int = 20):
         validation_data=val_ds,
         epochs=epochs,
         callbacks=callbacks,
+        class_weight=class_weight,
     )
 
     plot_training_history(history)
@@ -144,8 +175,8 @@ if __name__ == "__main__":
         train_ds=train_ds,
         val_ds=val_ds,
         num_classes=num_classes,
-        epochs=20,
+        epochs=30,
     )
 
-    print("CNN training completed.")
+    print("Optimized CNN training completed.")
     print(f"Best model saved to: {CNN_MODEL_PATH}")
