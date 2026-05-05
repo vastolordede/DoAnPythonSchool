@@ -21,6 +21,18 @@ Thumbs.db
 # Dataset - ignore all real dataset files
 data/raw/**
 data/processed/**
+# Trained models
+models/*.keras
+models/*.h5
+
+# Generated results
+results/figures/*
+results/reports/*
+results/predictions/*
+
+!results/figures/.gitkeep
+!results/reports/.gitkeep
+!results/predictions/.gitkeep
 
 # Keep folder placeholders
 !data/raw/
