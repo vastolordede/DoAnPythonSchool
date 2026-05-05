@@ -30,3 +30,4 @@ SEED = 42
 
 # Model config
 CNN_MODEL_PATH = MODELS_DIR / "cnn_baseline.keras"
+CNN_HISTORY_FIGURE_PATH = FIGURES_DIR / "cnn_accuracy_loss.png"
