@@ -2,36 +2,77 @@
 
 Dự án xây dựng hệ thống nhận diện biển báo giao thông bằng Computer Vision và Deep Learning.
 
-Mục tiêu của project là xây dựng pipeline hoàn chỉnh: dataset → preprocessing → training → evaluation → demo.
+Mục tiêu của project là xây dựng một pipeline hoàn chỉnh:
 
-Nguyên tắc làm project:
-- Ưu tiên dùng thư viện có sẵn.
-- Không tự code lại thuật toán nếu thư viện đã hỗ trợ.
-- Dùng TensorFlow/Keras để xây dựng và huấn luyện mô hình.
-- Dùng scikit-learn để đánh giá mô hình.
-- Dùng OpenCV/Pillow để xử lý ảnh.
-- Dùng Streamlit hoặc Gradio để làm demo.
-- Kết quả cần có bảng, biểu đồ, report để dễ đưa vào paper/báo cáo.
+```text
+dataset -> preprocessing -> training -> evaluation -> demo
+```
+
+Project sử dụng dataset GTSRB, TensorFlow/Keras để xây dựng và huấn luyện mô hình CNN, scikit-learn để đánh giá kết quả, và Streamlit/Gradio cho phần demo.
 
 ---
 
-## 1. Python Version
+## 1. Project Overview
+
+Bài toán của project là phân loại ảnh biển báo giao thông vào 43 lớp khác nhau.
+
+Dataset sau khi xử lý được chia thành 3 tập:
+
+| Dataset | Số ảnh | Số class |
+|---|---:|---:|
+| Train | 31,367 | 43 |
+| Validation | 7,842 | 43 |
+| Test | 12,630 | 43 |
+
+Mỗi class được lưu trong một thư mục riêng theo định dạng:
+
+```text
+data/processed/train/0/
+data/processed/train/1/
+...
+data/processed/train/42/
+```
+
+---
+
+## 2. Main Technologies
+
+Project sử dụng các thư viện chính:
+
+```text
+Python
+TensorFlow / Keras
+NumPy
+Pandas
+Matplotlib
+Scikit-learn
+OpenCV
+Pillow
+Jupyter Notebook
+Streamlit
+Gradio
+```
 
 Khuyến nghị dùng Python 3.10 hoặc Python 3.11.
 
-Môi trường hiện tại của project đang dùng Python 3.11.0.
-
-Lưu ý: Không nên dùng Python 3.13 cho project này vì TensorFlow có thể lỗi tương thích.
+Không nên dùng Python 3.13 vì TensorFlow có thể gặp lỗi tương thích.
 
 ---
 
-## 2. Cấu trúc project
+## 3. Project Structure
 
+```text
 traffic-sign-recognition/
+│
+├── app/
+│   └── .gitkeep
 │
 ├── data/
 │   ├── raw/
-│   │   └── README.md
+│   │   └── gtsrb/
+│   │       ├── Train.csv
+│   │       ├── Test.csv
+│   │       └── ảnh gốc của dataset
 │   │
 │   ├── processed/
 │   │   ├── train/
@@ -39,184 +80,101 @@ traffic-sign-recognition/
 │   │   └── test/
 │   │
 │   └── sample_images/
-│       └── README.md
+│
+├── models/
+│   └── cnn_baseline.keras
 │
 ├── notebooks/
 │   ├── 00_environment_check.ipynb
 │   ├── 01_data_exploration.ipynb
 │   ├── 02_cnn_baseline.ipynb
-│   ├── 03_transfer_learning.ipynb
-│   └── 04_evaluation_demo.ipynb
+│   ├── 03_experiment_optimization.ipynb
+│   └── 04_final_evaluation_demo.ipynb
+│
+├── report/
+│   └── cnn_methodology.md
+│
+├── results/
+│   ├── figures/
+│   │   └── cnn_accuracy_loss.png
+│   ├── predictions/
+│   └── reports/
+│       └── cnn_final_result.txt
 │
 ├── src/
 │   ├── __init__.py
 │   ├── config.py
 │   ├── dataset.py
+│   ├── evaluate.py
+│   ├── prepare_gtsrb.py
 │   ├── preprocessing.py
 │   ├── train_cnn.py
-│   ├── train_transfer.py
-│   ├── evaluate.py
-│   ├── predict.py
 │   └── utils.py
 │
-├── app/
-│   ├── streamlit_app.py
-│   └── gradio_app.py
-│
-├── models/
-│   ├── README.md
-│   ├── cnn_baseline.keras
-│   └── transfer_model.keras
-│
-├── results/
-│   ├── figures/
-│   │   ├── cnn_accuracy_loss.png
-│   │   ├── transfer_accuracy_loss.png
-│   │   └── confusion_matrix.png
-│   │
-│   ├── reports/
-│   │   ├── cnn_classification_report.txt
-│   │   ├── transfer_classification_report.txt
-│   │   └── comparison_table.csv
-│   │
-│   └── predictions/
-│       └── sample_predictions.csv
-│
-├── .gitignore
-├── README.md
+├── check_env.py
 ├── requirements.txt
 ├── requirements-lock.txt
-└── check_env.py
-
-Ghi chú: Các file model, hình ảnh kết quả, classification report có thể chưa có ở Week 0. Chúng sẽ được sinh ra sau khi train/evaluate model.
-
----
-
-## 3. Ý nghĩa các thư mục chính
-
-data/
-- Chứa dataset.
-- raw/ chứa dữ liệu gốc tải về.
-- processed/ chứa dữ liệu đã chia train/val/test.
-- sample_images/ chứa ảnh test ngoài dataset để demo.
-
-notebooks/
-- Chứa notebook thí nghiệm.
-- Dùng để khám phá dữ liệu, train thử model và đánh giá kết quả.
-
-src/
-- Chứa source code chính của project.
-- Các file train/evaluate/predict có thể phát triển dần từ Week 1 trở đi.
-
-app/
-- Chứa code demo.
-- streamlit_app.py dùng để chạy demo bằng Streamlit.
-- gradio_app.py dùng để chạy demo bằng Gradio.
-
-models/
-- Chứa model đã train.
-- Ví dụ: cnn_baseline.keras, transfer_model.keras.
-
-results/
-- Chứa kết quả huấn luyện và đánh giá.
-- figures/ chứa biểu đồ.
-- reports/ chứa classification report và bảng so sánh.
-- predictions/ chứa kết quả dự đoán ảnh mẫu.
+├── .gitignore
+└── README.md
+```
 
 ---
 
-## 4. Các thư viện sử dụng
+## 4. Environment Setup
 
-Các thư viện chính:
-- numpy
-- pandas
-- matplotlib
-- scikit-learn
-- tensorflow
-- opencv-python
-- pillow
-- streamlit
-- gradio
-- jupyter
-- notebook
-- ipykernel
+### 4.1. Create virtual environment
 
-Ý nghĩa:
-- numpy: xử lý dữ liệu dạng mảng số.
-- pandas: đọc và xử lý file CSV/label.
-- matplotlib: vẽ biểu đồ accuracy/loss.
-- scikit-learn: đánh giá model bằng metrics.
-- tensorflow: xây dựng và train model deep learning.
-- opencv-python: đọc, resize và xử lý ảnh.
-- pillow: mở ảnh, đặc biệt khi upload ảnh trong demo.
-- streamlit: làm demo web app.
-- gradio: làm demo AI nhanh.
-- jupyter/notebook/ipykernel: chạy notebook thí nghiệm.
+Trên Linux/WSL:
 
-Lưu ý:
-- Không cần cài riêng sklearn.metrics vì nó nằm trong scikit-learn.
-- Không cần cài riêng ImageDataGenerator vì nó nằm trong TensorFlow/Keras.
-- Không cần cài riêng image_dataset_from_directory vì nó nằm trong TensorFlow/Keras.
-- Không cần cài riêng keras nếu dùng tensorflow.keras.
+```bash
+python3.10 -m venv tf-gpu-venv
+source tf-gpu-venv/bin/activate
+```
+
+Hoặc nếu máy đã dùng đúng Python version:
+
+```bash
+python -m venv tf-gpu-venv
+source tf-gpu-venv/bin/activate
+```
+
+Trên Windows PowerShell:
+
+```powershell
+python -m venv tf-gpu-venv
+.\tf-gpu-venv\Scripts\Activate.ps1
+```
 
 ---
 
-## 5. Setup môi trường
+### 4.2. Install dependencies
 
-Mở terminal tại thư mục project.
+Cài các thư viện chính:
 
-Ví dụ project nằm ở D:\School\traffic-sign-recognition thì chạy:
-
-cd /d D:\School\traffic-sign-recognition
-
-Tạo virtual environment:
-
-python -m venv .venv
-
-Kích hoạt virtual environment trên Windows cmd:
-
-.venv\Scripts\activate
-
-Nếu kích hoạt thành công, terminal sẽ hiện dạng:
-
-(.venv) D:\School\traffic-sign-recognition>
-
-Kiểm tra Python đang dùng đúng venv chưa:
-
-where python
-
-Dòng đầu tiên nên là:
-
-D:\School\traffic-sign-recognition\.venv\Scripts\python.exe
-
-Nếu dòng đầu tiên là Python trong .venv thì đúng.
-
----
-
-## 6. Cài thư viện
-
-Sau khi đã activate .venv, nâng cấp pip:
-
+```bash
 python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
 
-Cài theo requirements.txt:
+Nếu muốn cài đúng toàn bộ version đã khóa:
 
-python -m pip install --no-cache-dir -r requirements.txt
-
-Hoặc cài đúng version đã freeze theo requirements-lock.txt:
-
-python -m pip install --no-cache-dir -r requirements-lock.txt
-
-Khuyến nghị cho các thành viên trong team:
-
-python -m pip install --no-cache-dir -r requirements-lock.txt
+```bash
+pip install -r requirements-lock.txt
+```
 
 ---
 
-## 7. Nội dung requirements.txt
+### 4.3. Check environment
 
-File requirements.txt nên giữ dạng gọn như sau:
+Chạy file kiểm tra môi trường:
 
+```bash
+python check_env.py
+```
+
+File này kiểm tra các thư viện chính:
+
+```text
 numpy
 pandas
 matplotlib
@@ -226,352 +184,787 @@ opencv-python
 pillow
 streamlit
 gradio
-jupyter
-notebook
-ipykernel
+```
+
+Đồng thời kiểm tra TensorFlow và GPU:
+
+```python
+tf.config.list_physical_devices("GPU")
+```
+
+Nếu GPU được nhận, output sẽ có dạng:
+
+```text
+GPU: [PhysicalDevice(name='/physical_device:GPU:0', device_type='GPU')]
+```
+
+Nếu không có GPU, project vẫn có thể chạy bằng CPU nhưng thời gian train sẽ lâu hơn.
 
 ---
 
-## 8. Freeze version
+### 4.4. Add Jupyter kernel
 
-Sau khi cài thư viện xong, freeze toàn bộ version hiện tại bằng lệnh:
+Nếu dùng VSCode Notebook hoặc Jupyter Notebook, cài kernel cho virtual environment:
 
-python -m pip freeze > requirements-lock.txt
+```bash
+python -m ipykernel install --user --name tf-gpu-venv --display-name "tf-gpu-venv"
+```
 
-Mục đích:
-- requirements.txt: danh sách thư viện chính, dễ đọc.
-- requirements-lock.txt: bản khóa version đầy đủ để các member cài giống nhau.
+Sau đó mở notebook và chọn kernel:
 
----
-
-## 9. Kiểm tra môi trường
-
-Chạy:
-
-python check_env.py
-
-Kết quả mong muốn:
-
-OK: numpy
-OK: pandas
-OK: matplotlib
-OK: scikit-learn
-OK: tensorflow
-OK: opencv-python
-OK: pillow
-OK: streamlit
-OK: gradio
-OK: sklearn.metrics
-OK: ImageDataGenerator
-OK: image_dataset_from_directory
-
-Kiểm tra nhanh:
-
-python -c "import numpy,pandas,matplotlib,sklearn,tensorflow,cv2,PIL,streamlit,gradio; print('ALL MAIN LIBRARIES OK')"
-
-Kiểm tra riêng sklearn.metrics:
-
-python -c "from sklearn.metrics import accuracy_score,precision_score,recall_score,f1_score,classification_report,confusion_matrix,ConfusionMatrixDisplay; print('SKLEARN METRICS OK')"
-
-Kiểm tra riêng Keras image pipeline:
-
-python -c "from tensorflow.keras.preprocessing.image import ImageDataGenerator; from tensorflow.keras.utils import image_dataset_from_directory; print('KERAS IMAGE PIPELINE OK')"
+```text
+tf-gpu-venv
+```
 
 ---
 
-## 10. Nội dung check_env.py
+## 5. Dataset Preparation
 
-File check_env.py dùng để kiểm tra Python version, thư viện chính, sklearn metrics, TensorFlow/Keras image pipeline và CPU/GPU.
+Dataset gốc GTSRB được đặt tại:
 
-Nội dung check_env.py:
+```text
+data/raw/gtsrb/
+```
 
-import sys
+Thư mục này cần chứa:
 
-print("=" * 60)
-print("PYTHON VERSION")
-print("=" * 60)
-print(sys.version)
+```text
+Train.csv
+Test.csv
+ảnh gốc của dataset
+```
 
-packages = [
-    ("numpy", "numpy"),
-    ("pandas", "pandas"),
-    ("matplotlib", "matplotlib"),
-    ("scikit-learn", "sklearn"),
-    ("tensorflow", "tensorflow"),
-    ("opencv-python", "cv2"),
-    ("pillow", "PIL"),
-    ("streamlit", "streamlit"),
-    ("gradio", "gradio"),
-]
+Để tạo dữ liệu đã xử lý, chạy:
 
-print("\nMAIN LIBRARIES")
-print("=" * 60)
+```bash
+python -m src.prepare_gtsrb
+```
 
-for package_name, import_name in packages:
-    try:
-        module = __import__(import_name)
-        version = getattr(module, "__version__", "version unknown")
-        print(f"OK: {package_name} - {version}")
-    except Exception as e:
-        print(f"ERROR: {package_name} - {e}")
+Script này sẽ:
 
-print("\nSKLEARN METRICS")
-print("=" * 60)
+```text
+1. Đọc Train.csv và Test.csv
+2. Chia tập train thành train/validation theo tỉ lệ 80/20
+3. Copy ảnh vào từng thư mục class tương ứng
+4. Tạo cấu trúc data/processed/train, data/processed/val, data/processed/test
+```
 
-try:
-    from sklearn.metrics import (
-        accuracy_score,
-        precision_score,
-        recall_score,
-        f1_score,
-        classification_report,
-        confusion_matrix,
-        ConfusionMatrixDisplay,
-    )
-    print("OK: sklearn.metrics")
-except Exception as e:
-    print(f"ERROR: sklearn.metrics - {e}")
+Kết quả sau khi xử lý:
 
-print("\nKERAS IMAGE PIPELINE")
-print("=" * 60)
-
-try:
-    from tensorflow.keras.preprocessing.image import ImageDataGenerator
-    from tensorflow.keras.utils import image_dataset_from_directory
-    print("OK: ImageDataGenerator")
-    print("OK: image_dataset_from_directory")
-except Exception as e:
-    print(f"ERROR: Keras image pipeline - {e}")
-
-print("\nTENSORFLOW DEVICE")
-print("=" * 60)
-
-try:
-    import tensorflow as tf
-    print("TensorFlow:", tf.__version__)
-    print("GPU:", tf.config.list_physical_devices("GPU"))
-except Exception as e:
-    print(f"ERROR: TensorFlow device check - {e}")
-
----
-
-## 11. Lưu ý về TensorFlow GPU trên Windows
-
-Nếu khi chạy check_env.py thấy:
-
-TensorFlow GPU support is not available on native Windows for TensorFlow >= 2.11.
-GPU: []
-
-Đây không phải lỗi.
-
-Ý nghĩa:
-- TensorFlow vẫn chạy bình thường bằng CPU.
-- GPU không được dùng trên native Windows với TensorFlow >= 2.11.
-
-Với đồ án sinh viên, train bằng CPU vẫn được. Nếu train quá chậm, có thể dùng:
-- Google Colab
-- WSL2
-- TensorFlow-DirectML
-
----
-
-## 12. Cấu hình interpreter trong VS Code
-
-Trong VS Code:
-
-Ctrl + Shift + P
-
-Chọn:
-
-Python: Select Interpreter
-
-Chọn Python trong venv:
-
-D:\School\traffic-sign-recognition\.venv\Scripts\python.exe
-
-Sau khi chọn đúng, góc dưới VS Code nên hiện:
-
-Python 3.11.x (.venv)
-
----
-
-## 13. Chuẩn bị notebook cho Week 1
-
-Tuần 1 cần chuẩn bị các notebook:
-
-notebooks/01_data_exploration.ipynb
-notebooks/02_cnn_baseline.ipynb
-notebooks/03_transfer_learning.ipynb
-notebooks/04_evaluation_demo.ipynb
-
-Có thể tạo trực tiếp trong VS Code:
-
-Right click notebooks/ → New File → 01_data_exploration.ipynb
-Right click notebooks/ → New File → 02_cnn_baseline.ipynb
-Right click notebooks/ → New File → 03_transfer_learning.ipynb
-Right click notebooks/ → New File → 04_evaluation_demo.ipynb
-
----
-
-## 14. Chuẩn bị folder dataset cho Week 1
-
-Tạo cấu trúc:
-
+```text
 data/processed/
 ├── train/
+│   ├── 0/
+│   ├── 1/
+│   ├── 2/
+│   └── ...
+│
 ├── val/
+│   ├── 0/
+│   ├── 1/
+│   ├── 2/
+│   └── ...
+│
 └── test/
+    ├── 0/
+    ├── 1/
+    ├── 2/
+    └── ...
+```
 
-Nếu chưa có thì chạy:
+---
 
-mkdir data\processed\train
-mkdir data\processed\val
-mkdir data\processed\test
+## 6. Configuration
 
-Khi dùng image_dataset_from_directory, mỗi class nên nằm trong một folder riêng.
+Các cấu hình chính nằm trong:
+
+```text
+src/config.py
+```
+
+Một số cấu hình quan trọng:
+
+```python
+IMG_HEIGHT = 96
+IMG_WIDTH = 96
+IMG_SIZE = (IMG_HEIGHT, IMG_WIDTH)
+
+BATCH_SIZE = 32
+SEED = 42
+
+CNN_MODEL_PATH = MODELS_DIR / "cnn_baseline.keras"
+CNN_HISTORY_FIGURE_PATH = FIGURES_DIR / "cnn_accuracy_loss.png"
+CNN_FINAL_RESULT_PATH = REPORTS_DIR / "cnn_final_result.txt"
+CNN_METHODOLOGY_PATH = ROOT_DIR / "report" / "cnn_methodology.md"
+```
+
+Ý nghĩa:
+
+```text
+IMG_HEIGHT, IMG_WIDTH:
+- Resize toàn bộ ảnh về kích thước 96x96.
+
+BATCH_SIZE:
+- Số ảnh trong mỗi batch khi train/evaluate.
+
+SEED:
+- Giúp chia dữ liệu và shuffle có tính ổn định.
+
+CNN_MODEL_PATH:
+- Nơi lưu best model bằng ModelCheckpoint.
+
+CNN_HISTORY_FIGURE_PATH:
+- Nơi lưu biểu đồ accuracy/loss sau khi train.
+
+CNN_FINAL_RESULT_PATH:
+- Nơi lưu kết quả đánh giá cuối cùng.
+```
+
+---
+
+## 7. Notebook Workflow
+
+Project được chia thành nhiều notebook theo từng giai đoạn.
+
+---
+
+### 7.1. 00_environment_check.ipynb
+
+Notebook kiểm tra môi trường chạy project.
+
+Nội dung chính:
+
+```text
+- Kiểm tra Python version
+- Kiểm tra TensorFlow version
+- Kiểm tra GPU
+- Kiểm tra các thư viện chính
+```
 
 Ví dụ:
 
-data/processed/train/
-├── class_0/
-├── class_1/
-├── class_2/
-...
-
-Hoặc:
-
-data/processed/train/
-├── 0/
-├── 1/
-├── 2/
-...
-
-Khi đó TensorFlow có thể đọc dataset bằng:
-
+```python
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 import tensorflow as tf
+import cv2
+from PIL import Image
 
-train_ds = tf.keras.utils.image_dataset_from_directory(
-    "data/processed/train",
-    image_size=(64, 64),
-    batch_size=32
-)
-
----
-
-## 15. Hướng chuẩn bị Week 1
-
-Week 1 tập trung vào:
-
-1. Chọn dataset.
-2. Tải dataset.
-3. Khám phá dataset.
-4. Kiểm tra số class.
-5. Kiểm tra số ảnh mỗi class.
-6. Chia dữ liệu train/val/test.
-7. Test đọc ảnh bằng image_dataset_from_directory.
-8. Tạo CNN baseline đầu tiên.
-9. Tạo transfer learning baseline đầu tiên.
-
-Dataset đề xuất:
-
-GTSRB - German Traffic Sign Recognition Benchmark
-
-Lý do:
-- Phù hợp bài toán nhận diện biển báo giao thông.
-- Có nhiều class biển báo.
-- Dễ dùng cho CNN và transfer learning.
-- Dễ đưa vào báo cáo/paper.
+print("Environment OK")
+print("TensorFlow:", tf.__version__)
+print("GPU:", tf.config.list_physical_devices("GPU"))
+```
 
 ---
 
-## 16. Các lệnh thường dùng
+### 7.2. 01_data_exploration.ipynb
 
-Kích hoạt venv:
+Notebook khám phá dữ liệu.
 
-.venv\Scripts\activate
+Nội dung chính:
 
-Cài thư viện chính:
+```text
+- Kiểm tra đường dẫn train/val/test
+- Đếm số lượng ảnh theo từng class
+- Kiểm tra số lượng class
+- Hiển thị ảnh mẫu
+```
 
-python -m pip install --no-cache-dir -r requirements.txt
+Kết quả hiện tại:
 
-Cài đúng version đã freeze:
-
-python -m pip install --no-cache-dir -r requirements-lock.txt
-
-Kiểm tra môi trường:
-
-python check_env.py
-
-Freeze version:
-
-python -m pip freeze > requirements-lock.txt
-
-Chạy Streamlit sau này:
-
-streamlit run app/streamlit_app.py
-
-Chạy Gradio sau này:
-
-python app/gradio_app.py
+```text
+Train images: 31,367
+Validation images: 7,842
+Test images: 12,630
+Number of classes: 43
+```
 
 ---
 
-## 17. Git notes
+### 7.3. 02_cnn_baseline.ipynb
 
-Không push các phần sau lên GitHub:
+Notebook xây dựng và train mẫu CNN baseline.
 
-.venv/
-data/raw/
-data/processed/
+Vai trò của notebook này là kiểm tra pipeline huấn luyện ban đầu, chưa phải model final chính thức.
+
+Nội dung chính:
+
+```text
+- Load train/validation/test dataset
+- Optimize dataset bằng cache và prefetch
+- Build CNN baseline model
+- Kiểm tra input/output shape
+- Train thử bằng model.fit()
+- Train baseline model với callbacks
+- Lưu best model
+- Vẽ biểu đồ accuracy/loss
+- Evaluate nhanh trên small test set
+```
+
+Callbacks được sử dụng:
+
+```text
+EarlyStopping
+ModelCheckpoint
+ReduceLROnPlateau
+```
+
+Output chính:
+
+```text
+models/cnn_baseline.keras
+results/figures/cnn_accuracy_loss.png
+```
+
+Lưu ý:
+
+```text
+Notebook 02 chỉ được xem là baseline và training prototype.
+Kết quả trong notebook này dùng để chứng minh pipeline hoạt động đúng.
+Model final chính thức sẽ được train ở notebook 03.
+```
+
+---
+
+### 7.4. 03_experiment_optimization.ipynb
+
+Notebook dành cho experiment và optimization.
+
+Vai trò:
+
+```text
+- Thử nghiệm các cấu hình CNN
+- So sánh learning rate, dropout, class_weight
+- So sánh train subset và full dataset
+- Chọn cấu hình tốt nhất
+- Train final optimized model
+```
+
+Output dự kiến:
+
+```text
+models/cnn_final_optimized.keras
+results/figures/final_training_curve.png
+experiment_summary.md
+```
+
+Notebook này là nơi train model chính thức của project.
+
+---
+
+### 7.5. 04_final_evaluation_demo.ipynb
+
+Notebook dành cho final evaluation và demo.
+
+Vai trò:
+
+```text
+- Load model tốt nhất từ notebook 03
+- Evaluate full test set
+- Tạo classification_report
+- Tạo confusion_matrix
+- Test ảnh ngoài
+- Chuẩn bị demo bằng Streamlit hoặc Gradio
+```
+
+Output dự kiến:
+
+```text
+results/reports/classification_report.txt
+results/figures/confusion_matrix.png
+demo final
+```
+
+Notebook 04 không nên train lại model từ đầu. Notebook này chỉ load model đã train, đánh giá và demo.
+
+---
+
+## 8. CNN Baseline Model
+
+Model CNN baseline được định nghĩa trong:
+
+```text
+src/train_cnn.py
+```
+
+Kiến trúc chính:
+
+```text
+Input image: 96x96x3
+
+Data Augmentation
+Rescaling
+
+Conv Block 32 filters
+Conv Block 64 filters
+Conv Block 128 filters
+Conv Block 256 filters
+
+GlobalAveragePooling2D
+
+Dense 256
+BatchNormalization
+Dropout 0.40
+
+Dense 128
+Dropout 0.30
+
+Dense num_classes
+Softmax
+```
+
+Loss function:
+
+```text
+sparse_categorical_crossentropy
+```
+
+Optimizer:
+
+```text
+Adam learning_rate=0.001
+```
+
+Metric:
+
+```text
+accuracy
+```
+
+---
+
+## 9. Data Preprocessing
+
+Tiền xử lý ảnh được định nghĩa trong:
+
+```text
+src/preprocessing.py
+```
+
+Các bước chính:
+
+```text
+1. Rescaling pixel từ [0, 255] về [0, 1]
+2. Data augmentation để tăng khả năng tổng quát của model
+```
+
+Data augmentation được sử dụng:
+
+```text
+RandomRotation
+RandomZoom
+RandomTranslation
+RandomContrast
+```
+
+Không sử dụng horizontal flip vì một số biển báo có hướng trái/phải. Nếu lật ngang ảnh, ý nghĩa của biển báo có thể bị thay đổi.
+
+---
+
+## 10. Source Code Modules
+
+### 10.1. src/config.py
+
+Chứa toàn bộ đường dẫn và cấu hình chính của project.
+
+Bao gồm:
+
+```text
+Dataset paths
+Output paths
+Image size
+Batch size
+Seed
+Model path
+Report path
+```
+
+---
+
+### 10.2. src/dataset.py
+
+Chứa hàm load dataset:
+
+```python
+load_train_val_test_datasets()
+```
+
+Hàm này sử dụng:
+
+```python
+tf.keras.utils.image_dataset_from_directory
+```
+
+để load dữ liệu từ:
+
+```text
+data/processed/train
+data/processed/val
+data/processed/test
+```
+
+Ngoài ra có hàm:
+
+```python
+optimize_dataset()
+```
+
+dùng:
+
+```text
+cache()
+prefetch()
+```
+
+để tăng hiệu năng input pipeline.
+
+---
+
+### 10.3. src/preprocessing.py
+
+Chứa các layer tiền xử lý ảnh:
+
+```text
+Rescaling
+Data augmentation
+```
+
+Các augmentation được dùng:
+
+```text
+RandomRotation
+RandomZoom
+RandomTranslation
+RandomContrast
+```
+
+---
+
+### 10.4. src/train_cnn.py
+
+Chứa toàn bộ logic xây dựng và train CNN:
+
+```text
+conv_block()
+build_cnn_baseline()
+get_cnn_callbacks()
+plot_training_history()
+train_cnn_model()
+```
+
+File này chịu trách nhiệm:
+
+```text
+- Tạo model CNN
+- Compile model
+- Tạo callbacks
+- Train model
+- Lưu best model
+- Lưu biểu đồ accuracy/loss
+```
+
+---
+
+### 10.5. src/evaluate.py
+
+Chứa các hàm đánh giá model:
+
+```text
+load_cnn_model()
+evaluate_model()
+save_cnn_final_result()
+evaluate_cnn_final()
+```
+
+Output đánh giá được lưu tại:
+
+```text
+results/reports/cnn_final_result.txt
+```
+
+---
+
+### 10.6. src/prepare_gtsrb.py
+
+Chứa script chuẩn bị dataset GTSRB.
+
+Script này:
+
+```text
+- Đọc Train.csv
+- Chia train/validation bằng train_test_split
+- Stratify theo ClassId
+- Đọc Test.csv
+- Copy ảnh vào data/processed
+```
+
+---
+
+### 10.7. src/utils.py
+
+Chứa hàm hỗ trợ kiểm tra dữ liệu:
+
+```text
+count_images_by_class()
+print_class_distribution()
+```
+
+---
+
+## 11. Training Pipeline
+
+Pipeline train model cơ bản:
+
+```text
+1. Load dataset từ data/processed
+2. Resize ảnh về 96x96
+3. Batch ảnh với batch size = 32
+4. Cache và prefetch dataset
+5. Build CNN model
+6. Compile model bằng Adam optimizer
+7. Train bằng model.fit()
+8. Dùng callbacks để kiểm soát quá trình train
+9. Lưu best model bằng ModelCheckpoint
+10. Vẽ accuracy/loss curve
+```
+
+Callbacks:
+
+```text
+EarlyStopping:
+- Dừng train nếu val_loss không cải thiện sau một số epoch.
+- restore_best_weights=True để lấy lại weights tốt nhất.
+
+ModelCheckpoint:
+- Lưu model tốt nhất dựa trên val_accuracy.
+
+ReduceLROnPlateau:
+- Giảm learning rate nếu val_loss không cải thiện.
+```
+
+---
+
+## 12. Evaluation Pipeline
+
+Pipeline evaluate model:
+
+```text
+1. Load model đã train từ models/
+2. Load test dataset từ data/processed/test
+3. Evaluate model bằng model.evaluate()
+4. Ghi test loss và test accuracy
+5. Tạo classification report
+6. Tạo confusion matrix
+7. Lưu kết quả vào results/
+```
+
+Hiện tại `src/evaluate.py` đã có các hàm cơ bản:
+
+```text
+load_cnn_model()
+evaluate_model()
+save_cnn_final_result()
+evaluate_cnn_final()
+```
+
+Các phần classification report và confusion matrix sẽ được hoàn thiện ở notebook 04.
+
+---
+
+## 13. Current Team Task Division
+
+### Week 2 - Training + Evaluation
+
+| Member | Feature | Main Task | Deliverable | Status |
+|---|---|---|---|---|
+| Đặng | CNN Baseline + Training Prototype | Train mẫu CNN baseline và kiểm tra pipeline training | `02_cnn_baseline.ipynb`, `cnn_baseline.keras`, `cnn_accuracy_loss.png` | Đã hoàn thành |
+| Sang | CNN Optimization Experiments | Thử nghiệm các cấu hình CNN | `03_experiment_optimization.ipynb`, `experiment_summary.md` | Chưa hoàn thành |
+| Thảo | Evaluation Functions | Hoàn thiện hàm đánh giá model | evaluation utilities, report template | Chưa hoàn thành |
+
+---
+
+### Week 3 - Final Result + Paper
+
+| Member | Feature | Main Task | Deliverable | Status |
+|---|---|---|---|---|
+| Đặng | Baseline Cleanup + Handoff | Dọn notebook 02 và bàn giao baseline training pipeline | cleaned `02_cnn_baseline.ipynb` | Đã hoàn thành |
+| Sang | Final Optimized CNN Training + Methodology | Train final model và viết methodology | final model, experiment table, methodology section | Chưa hoàn thành |
+| Thảo | Final Evaluation + Demo | Evaluate model cuối và hoàn thiện demo | classification report, confusion matrix, demo final | Chưa hoàn thành |
+
+---
+
+## 14. Git Ignore Policy
+
+Project không push dataset thật, model lớn, cache hoặc file kết quả sinh tự động.
+
+Các file/thư mục bị ignore:
+
+```text
+data/raw/**
+data/processed/**
 models/*.keras
 models/*.h5
+results/figures/*
+results/reports/*
+results/predictions/*
 __pycache__/
 .ipynb_checkpoints/
+.venv/
+venv/
+env/
+.vscode/
+.idea/
+```
 
-Nên push:
+Các thư mục vẫn được giữ bằng `.gitkeep`.
 
-README.md
-requirements.txt
-requirements-lock.txt
-check_env.py
-notebooks/
-src/
-app/
+Lý do:
+
+```text
+- Dataset thường rất lớn
+- Model .keras có thể nặng
+- Result có thể sinh lại khi chạy notebook
+- Virtual environment không nên push lên GitHub
+- Cache Python và Jupyter không cần đưa lên repository
+```
+
+Nếu muốn push một ảnh kết quả cụ thể như `cnn_accuracy_loss.png`, có thể thêm exception vào `.gitignore`:
+
+```gitignore
+!results/figures/cnn_accuracy_loss.png
+```
+
+Nếu muốn push model `.keras` lên GitHub, cần bỏ hoặc sửa dòng:
+
+```gitignore
+models/*.keras
+```
+
+Tuy nhiên, khuyến nghị không push model lớn trực tiếp lên GitHub. Có thể lưu model trên Google Drive hoặc nền tảng lưu trữ riêng.
 
 ---
 
-## 18. Checklist Week 0
+## 15. How to Run
 
-[x] Cài Python 3.10/3.11
-[x] Tạo virtual environment .venv
-[x] Cài numpy, pandas, matplotlib
-[x] Cài scikit-learn
-[x] Cài tensorflow
-[x] Cài opencv-python
-[x] Cài pillow
-[x] Cài streamlit hoặc gradio
-[x] Cài jupyter, notebook, ipykernel
-[x] Tạo requirements.txt
-[x] Freeze requirements-lock.txt
-[x] Tạo check_env.py
-[x] Chạy python check_env.py
-[x] Tạo cấu trúc thư mục project
-[x] Tạo README.md
-[x] Chọn interpreter .venv trong VS Code
+### Step 1: Clone project
+
+```bash
+git clone <repository-url>
+cd traffic-sign-recognition
+```
 
 ---
 
-## 19. Checklist trước khi sang Week 1
+### Step 2: Create environment
 
-[ ] requirements.txt chỉ chứa danh sách thư viện chính
-[ ] requirements-lock.txt đã được tạo bằng pip freeze
-[ ] python check_env.py chạy OK
-[ ] VS Code đã chọn đúng .venv
-[ ] notebooks/01_data_exploration.ipynb đã tạo
-[ ] notebooks/02_cnn_baseline.ipynb đã tạo
-[ ] notebooks/03_transfer_learning.ipynb đã tạo
-[ ] notebooks/04_evaluation_demo.ipynb đã tạo
-[ ] data/processed/train đã có
-[ ] data/processed/val đã có
-[ ] data/processed/test đã có
-[ ] Team thống nhất dùng dataset GTSRB hoặc dataset tương đương
+Trên Linux/WSL:
+
+```bash
+python3.10 -m venv tf-gpu-venv
+source tf-gpu-venv/bin/activate
+```
+
+Trên Windows PowerShell:
+
+```powershell
+python -m venv tf-gpu-venv
+.\tf-gpu-venv\Scripts\Activate.ps1
+```
+
+---
+
+### Step 3: Install dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+Hoặc dùng lock file:
+
+```bash
+pip install -r requirements-lock.txt
+```
+
+---
+
+### Step 4: Check environment
+
+```bash
+python check_env.py
+```
+
+---
+
+### Step 5: Prepare dataset
+
+Đặt dataset GTSRB vào:
+
+```text
+data/raw/gtsrb/
+```
+
+Sau đó chạy:
+
+```bash
+python -m src.prepare_gtsrb
+```
+
+---
+
+### Step 6: Run notebooks
+
+Mở project bằng VSCode hoặc Jupyter Notebook.
+
+Chạy theo thứ tự:
+
+```text
+00_environment_check.ipynb
+01_data_exploration.ipynb
+02_cnn_baseline.ipynb
+03_experiment_optimization.ipynb
+04_final_evaluation_demo.ipynb
+```
+
+---
+
+## 16. Current Progress
+
+Đã hoàn thành:
+
+```text
+- Tạo cấu trúc project
+- Cấu hình môi trường Python/TensorFlow
+- Chuẩn bị dataset train/val/test
+- Kiểm tra phân bố dữ liệu
+- Xây dựng CNN baseline
+- Train mẫu CNN baseline
+- Lưu model baseline
+- Lưu biểu đồ training accuracy/loss
+```
+
+Đang tiếp tục:
+
+```text
+- Experiment optimization
+- Final model training
+- Final evaluation
+- Confusion matrix
+- Classification report
+- Demo nhận diện ảnh
+- Paper/report
+```
+
+---
+
+## 17. Notes
+
+Notebook 02 chỉ được xem là baseline và training prototype.
+
+Model final chính thức sẽ được train trong notebook 03.
+
+Notebook 04 sẽ load model final từ notebook 03 để đánh giá trên full test set và làm demo nhận diện ảnh.
+
+Dataset thật, model lớn, virtual environment và file cache không được push trực tiếp lên GitHub.
+
+Các thư mục rỗng cần giữ trong repository được quản lý bằng `.gitkeep`.
